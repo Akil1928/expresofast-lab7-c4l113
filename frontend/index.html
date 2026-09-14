@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpresoFast - Tablero de Monitoreo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="logo">🚚 ExpresoFast</div>
+        <nav class="main-nav">
+            <a href="#dashboard">Tablero</a>
+            <a href="#nuevo-envio">Nuevo Envio</a>
+        </nav>
+    </header>
+
+    <main class="app-main">
+
+        <aside class="filtros-panel">
+            <h2>Filtros de Estado</h2>
+            <div class="filtros-lista" id="filtrosLista">
+                <button class="filtro-btn activo" data-estado="TODOS">TODOS</button>
+                <button class="filtro-btn" data-estado="PENDIENTE">PENDIENTE</button>
+                <button class="filtro-btn" data-estado="EN_TRANSITO">EN TRANSITO</button>
+                <button class="filtro-btn" data-estado="ENTREGADO">ENTREGADO</button>
+            </div>
+
+            <section id="nuevo-envio" class="form-nuevo-envio">
+                <h2>Registrar Nuevo Envio</h2>
+                <form id="formEnvio">
+                    <label for="codigoRastreo">Codigo de Rastreo</label>
+                    <input type="text" id="codigoRastreo" name="codigoRastreo" placeholder="EXP-0001" required>
+
+                    <label for="direccionDestino">Direccion Destino</label>
+                    <input type="text" id="direccionDestino" name="direccionDestino" placeholder="Paraiso, Cartago" required>
+
+                    <label for="pesoKg">Peso (kg)</label>
+                    <input type="number" step="0.01" id="pesoKg" name="pesoKg" placeholder="12.5" required>
+
+                    <label for="costo">Costo (₡)</label>
+                    <input type="number" step="0.01" id="costo" name="costo" placeholder="3500.00" required>
+
+                    <label for="vehiculoId">ID Vehiculo</label>
+                    <input type="number" id="vehiculoId" name="vehiculoId" placeholder="1" required>
+
+                    <label for="conductorId">ID Conductor</label>
+                    <input type="number" id="conductorId" name="conductorId" placeholder="1" required>
+
+                    <button type="submit" class="btn-primario">Registrar Envio</button>
+                </form>
+                <p id="mensajeForm" class="mensaje-form"></p>
+            </section>
+        </aside>
+
+        <section id="dashboard" class="dashboard">
+            <h1>Tablero de Envios</h1>
+            <div class="envios-grid" id="enviosGrid">
+                <!-- Las tarjetas de envio se insertan aqui dinamicamente via app.js -->
+                <p class="cargando">Cargando envios...</p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="app-footer">
+        <p>ExpresoFast &copy; 2026 - Laboratorio 5, IF0009 Desarrollo de Software IV</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
