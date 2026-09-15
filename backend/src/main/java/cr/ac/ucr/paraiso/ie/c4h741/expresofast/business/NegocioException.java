@@ -1,4 +1,4 @@
-package cr.ac.ucr.paraiso.ie.c4l113_c4h741.expresofast.business;
+package cr.ac.ucr.paraiso.ie.c4h741.expresofast.business;
 
 /**
  * Excepcion para reglas de negocio incumplidas

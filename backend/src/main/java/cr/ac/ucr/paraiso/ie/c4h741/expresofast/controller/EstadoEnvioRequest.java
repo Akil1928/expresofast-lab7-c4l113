@@ -1,4 +1,4 @@
-package cr.ac.ucr.paraiso.ie.c4l113_c4h741.expresofast.controller;
+package cr.ac.ucr.paraiso.ie.c4h741.expresofast.controller;
 
 import jakarta.validation.constraints.NotBlank;
 

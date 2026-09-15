@@ -1,4 +1,4 @@
-package cr.ac.ucr.paraiso.ie.c4l113_c4h741.expresofast;
+package cr.ac.ucr.paraiso.ie.c4h741.expresofast;
 
 import com.fasterxml.jackson.datatype.hibernate6.Hibernate6Module;
 import org.springframework.boot.SpringApplication;

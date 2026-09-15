@@ -1,8 +1,8 @@
-package cr.ac.ucr.paraiso.ie.c4l113_c4h741.expresofast.controller;
+package cr.ac.ucr.paraiso.ie.c4h741.expresofast.controller;
 
-import cr.ac.ucr.paraiso.ie.c4l113_c4h741.expresofast.business.EnvioService;
-import cr.ac.ucr.paraiso.ie.c4l113_c4h741.expresofast.business.NegocioException;
-import cr.ac.ucr.paraiso.ie.c4l113_c4h741.expresofast.domain.Envio;
+import cr.ac.ucr.paraiso.ie.c4h741.expresofast.business.EnvioService;
+import cr.ac.ucr.paraiso.ie.c4h741.expresofast.business.NegocioException;
+import cr.ac.ucr.paraiso.ie.c4h741.expresofast.domain.Envio;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,6 +1,6 @@
-package cr.ac.ucr.paraiso.ie.c4l113_c4h741.expresofast.data;
+package cr.ac.ucr.paraiso.ie.c4h741.expresofast.data;
 
-import cr.ac.ucr.paraiso.ie.c4l113_c4h741.expresofast.domain.Envio;
+import cr.ac.ucr.paraiso.ie.c4h741.expresofast.domain.Envio;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

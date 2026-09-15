@@ -1,4 +1,4 @@
-package cr.ac.ucr.paraiso.ie.c4l113_c4h741.expresofast.config;
+package cr.ac.ucr.paraiso.ie.c4h741.expresofast.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
