@@ -1,15 +1,28 @@
 package cr.ac.ucr.paraiso.ie.c4h741.expresofast.business;
 
+import cr.ac.ucr.paraiso.ie.c4h741.expresofast.data.BitacoraEnvioRepository;
 import cr.ac.ucr.paraiso.ie.c4h741.expresofast.data.ConductorRepository;
 import cr.ac.ucr.paraiso.ie.c4h741.expresofast.data.EnvioRepository;
+import cr.ac.ucr.paraiso.ie.c4h741.expresofast.data.UsuarioRepository;
 import cr.ac.ucr.paraiso.ie.c4h741.expresofast.data.VehiculoRepository;
+import cr.ac.ucr.paraiso.ie.c4h741.expresofast.domain.BitacoraEnvio;
 import cr.ac.ucr.paraiso.ie.c4h741.expresofast.domain.Conductor;
 import cr.ac.ucr.paraiso.ie.c4h741.expresofast.domain.Envio;
+import cr.ac.ucr.paraiso.ie.c4h741.expresofast.domain.Usuario;
 import cr.ac.ucr.paraiso.ie.c4h741.expresofast.domain.Vehiculo;
+import cr.ac.ucr.paraiso.ie.c4h741.expresofast.dto.BitacoraResponseDTO;
+import cr.ac.ucr.paraiso.ie.c4h741.expresofast.dto.CambioEstadoDTO;
+import cr.ac.ucr.paraiso.ie.c4h741.expresofast.dto.EnvioRequestDTO;
+import cr.ac.ucr.paraiso.ie.c4h741.expresofast.dto.EnvioResponseDTO;
+import cr.ac.ucr.paraiso.ie.c4h741.expresofast.exception.InvalidStateTransitionException;
+import cr.ac.ucr.paraiso.ie.c4h741.expresofast.exception.ResourceNotFoundException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class EnvioService {
@@ -17,74 +30,93 @@ public class EnvioService {
     private static final List<String> ESTADOS_VALIDOS =
             List.of("PENDIENTE", "EN_TRANSITO", "ENTREGADO", "CANCELADO");
 
+    // Estados finales: una vez alcanzados, no pueden volver a PENDIENTE ni EN_TRANSITO
+    private static final Set<String> ESTADOS_FINALES = Set.of("ENTREGADO", "CANCELADO");
+    private static final Set<String> ESTADOS_INICIALES = Set.of("PENDIENTE", "EN_TRANSITO");
+
     private final EnvioRepository envioRepository;
     private final VehiculoRepository vehiculoRepository;
     private final ConductorRepository conductorRepository;
+    private final BitacoraEnvioRepository bitacoraEnvioRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    // Inyeccion de dependencias por constructor
     public EnvioService(EnvioRepository envioRepository,
                          VehiculoRepository vehiculoRepository,
-                         ConductorRepository conductorRepository) {
+                         ConductorRepository conductorRepository,
+                         BitacoraEnvioRepository bitacoraEnvioRepository,
+                         UsuarioRepository usuarioRepository) {
         this.envioRepository = envioRepository;
         this.vehiculoRepository = vehiculoRepository;
         this.conductorRepository = conductorRepository;
+        this.bitacoraEnvioRepository = bitacoraEnvioRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<Envio> listarOptimizado() {
-        return envioRepository.findAllOptimizado();
+    public List<EnvioResponseDTO> listarOptimizado() {
+        return envioRepository.findAllOptimizado().stream()
+                .map(this::toResponseDTO)
+                .toList();
     }
 
     @Transactional
-    public Envio crear(Envio envio) {
-        if (envio.getVehiculo() == null || envio.getVehiculo().getId() == null) {
-            throw new NegocioException("Debe indicar el vehiculo asignado al envio.");
-        }
-        if (envio.getConductor() == null || envio.getConductor().getId() == null) {
-            throw new NegocioException("Debe indicar el conductor asignado al envio.");
-        }
-
-        Vehiculo vehiculo = vehiculoRepository.findById(envio.getVehiculo().getId())
+    public EnvioResponseDTO crear(EnvioRequestDTO request) {
+        Vehiculo vehiculo = vehiculoRepository.findById(request.getVehiculoId())
                 .orElseThrow(() -> new NegocioException("El vehiculo indicado no existe."));
 
-        Conductor conductor = conductorRepository.findById(envio.getConductor().getId())
+        Conductor conductor = conductorRepository.findById(request.getConductorId())
                 .orElseThrow(() -> new NegocioException("El conductor indicado no existe."));
 
         // Regla de negocio: el peso del envio no puede superar la capacidad del vehiculo
-        if (envio.getPesoKg() == null || vehiculo.getCapacidadKg() == null
-                || envio.getPesoKg().compareTo(vehiculo.getCapacidadKg()) > 0) {
+        if (vehiculo.getCapacidadKg() == null
+                || request.getPesoKg().compareTo(vehiculo.getCapacidadKg()) > 0) {
             throw new NegocioException(
-                    "El peso del envio (" + envio.getPesoKg() + " kg) supera la capacidad del vehiculo "
+                    "El peso del envio (" + request.getPesoKg() + " kg) supera la capacidad del vehiculo "
                             + vehiculo.getPlaca() + " (" + vehiculo.getCapacidadKg() + " kg).");
         }
 
+        Envio envio = new Envio();
+        envio.setCodigoRastreo(request.getCodigoRastreo());
+        envio.setDireccionDestino(request.getDireccionDestino());
+        envio.setPesoKg(request.getPesoKg());
+        envio.setCosto(request.getCosto());
         envio.setVehiculo(vehiculo);
         envio.setConductor(conductor);
+        envio.setEstadoEnvio("PENDIENTE");
 
-        if (envio.getEstadoEnvio() == null || envio.getEstadoEnvio().isBlank()) {
-            envio.setEstadoEnvio("PENDIENTE");
-        } else {
-            validarEstado(envio.getEstadoEnvio());
-        }
-
-        return envioRepository.save(envio);
+        Envio guardado = envioRepository.save(envio);
+        return toResponseDTO(guardado);
     }
 
     /**
-     * Actualiza el estado de un envio aprovechando el Dirty Checking de JPA:
-     * al modificar la entidad gestionada dentro de la transaccion,
-     * Hibernate detecta el cambio y genera el UPDATE automaticamente al hacer commit.
+     * Actualiza el estado de un envio, valida la transicion, y registra
+     * automaticamente el cambio en la bitacora de auditoria con el usuario autenticado.
      */
     @Transactional
-    public Envio actualizarEstado(Integer envioId, String nuevoEstado) {
+    public EnvioResponseDTO actualizarEstado(Integer envioId, CambioEstadoDTO request) {
+        String nuevoEstado = request.getNuevoEstado().toUpperCase();
         validarEstado(nuevoEstado);
 
         Envio envio = envioRepository.findById(envioId)
-                .orElseThrow(() -> new NegocioException("El envio con id " + envioId + " no existe."));
+                .orElseThrow(() -> new ResourceNotFoundException("El envio con id " + envioId + " no existe."));
+
+        String estadoAnterior = envio.getEstadoEnvio();
+        validarTransicion(estadoAnterior, nuevoEstado, envio.getCodigoRastreo());
+
+        Usuario usuarioActual = obtenerUsuarioAutenticado();
 
         envio.setEstadoEnvio(nuevoEstado);
-        // No es necesario llamar a save(): Dirty Checking actualiza al finalizar la transaccion.
-        return envio;
+        // Dirty Checking actualiza el Envio al finalizar la transaccion.
+
+        BitacoraEnvio bitacora = new BitacoraEnvio();
+        bitacora.setEnvio(envio);
+        bitacora.setEstadoAnterior(estadoAnterior);
+        bitacora.setEstadoNuevo(nuevoEstado);
+        bitacora.setUsuario(usuarioActual);
+        bitacora.setObservaciones(request.getObservaciones());
+        bitacoraEnvioRepository.save(bitacora);
+
+        return toResponseDTO(envio);
     }
 
     @Transactional
@@ -98,10 +130,61 @@ public class EnvioService {
         return envioRepository.actualizarEstadoPorVehiculo(vehiculoId, nuevoEstado);
     }
 
+    @Transactional(readOnly = true)
+    public List<BitacoraResponseDTO> obtenerBitacora(Integer envioId) {
+        if (!envioRepository.existsById(envioId)) {
+            throw new ResourceNotFoundException("El envio con id " + envioId + " no existe.");
+        }
+
+        return bitacoraEnvioRepository.findByEnvioIdOrderByFechaCambioDesc(envioId).stream()
+                .map(b -> new BitacoraResponseDTO(
+                        b.getId(),
+                        b.getEstadoAnterior(),
+                        b.getEstadoNuevo(),
+                        b.getFechaCambio(),
+                        b.getUsuario().getNombreCompleto(),
+                        b.getObservaciones()
+                ))
+                .toList();
+    }
+
     private void validarEstado(String estado) {
         if (estado == null || !ESTADOS_VALIDOS.contains(estado.toUpperCase())) {
             throw new NegocioException("Estado de envio invalido: " + estado
                     + ". Valores permitidos: " + ESTADOS_VALIDOS);
         }
+    }
+
+    /**
+     * Reto autonomo: un envio en estado final (ENTREGADO o CANCELADO)
+     * no puede volver a un estado inicial (PENDIENTE o EN_TRANSITO).
+     */
+    private void validarTransicion(String estadoActual, String nuevoEstado, String codigoRastreo) {
+        if (ESTADOS_FINALES.contains(estadoActual) && ESTADOS_INICIALES.contains(nuevoEstado)) {
+            throw new InvalidStateTransitionException(
+                    "Transicion de estado no permitida para el envio " + codigoRastreo);
+        }
+    }
+
+    private Usuario obtenerUsuarioAutenticado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        return usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + username));
+    }
+
+    private EnvioResponseDTO toResponseDTO(Envio envio) {
+        return new EnvioResponseDTO(
+                envio.getId(),
+                envio.getCodigoRastreo(),
+                envio.getDireccionDestino(),
+                envio.getPesoKg(),
+                envio.getCosto(),
+                envio.getEstadoEnvio(),
+                envio.getVehiculo() != null ? envio.getVehiculo().getPlaca() : null,
+                envio.getConductor() != null
+                        ? envio.getConductor().getNombre() + " " + envio.getConductor().getApellidos()
+                        : null
+        );
     }
 }
