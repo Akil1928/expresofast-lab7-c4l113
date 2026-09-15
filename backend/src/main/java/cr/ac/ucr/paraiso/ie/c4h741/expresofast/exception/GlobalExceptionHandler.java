@@ -3,6 +3,7 @@ package cr.ac.ucr.paraiso.ie.c4h741.expresofast.exception;
 import cr.ac.ucr.paraiso.ie.c4h741.expresofast.business.NegocioException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -31,6 +32,12 @@ public class GlobalExceptionHandler {
         body.put("detalles", errores);
 
         return ResponseEntity.badRequest().body(body);
+    }
+
+    // 400 - JSON mal formado o no legible en el body de la peticion
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> manejarJsonInvalido(HttpMessageNotReadableException ex) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST, "El cuerpo de la peticion no es un JSON valido");
     }
 
     // 404 - Recurso no encontrado
