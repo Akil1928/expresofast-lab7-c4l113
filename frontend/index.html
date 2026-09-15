@@ -14,6 +14,10 @@
             <a href="#dashboard">Tablero</a>
             <a href="#nuevo-envio">Nuevo Envio</a>
         </nav>
+        <div class="usuario-info">
+            <span id="usuarioActual"></span>
+            <button id="btnLogout" class="btn-logout">Cerrar Sesion</button>
+        </div>
     </header>
 
     <main class="app-main">
@@ -57,15 +61,36 @@
         <section id="dashboard" class="dashboard">
             <h1>Tablero de Envios</h1>
             <div class="envios-grid" id="enviosGrid">
-                <!-- Las tarjetas de envio se insertan aqui dinamicamente via app.js -->
                 <p class="cargando">Cargando envios...</p>
             </div>
         </section>
 
     </main>
 
+    <!-- Modal de Bitacora de Auditoria -->
+    <div id="modalBitacora" class="modal-overlay oculto">
+        <div class="modal-contenido">
+            <div class="modal-header">
+                <h2 id="modalBitacoraTitulo">Bitacora del Envio</h2>
+                <button id="btnCerrarModal" class="btn-cerrar-modal">&times;</button>
+            </div>
+
+            <div class="modal-filtros">
+                <label for="filtroFechaInicio">Desde</label>
+                <input type="date" id="filtroFechaInicio">
+                <label for="filtroFechaFin">Hasta</label>
+                <input type="date" id="filtroFechaFin">
+                <button id="btnLimpiarFiltroFecha" class="btn-secundario">Limpiar</button>
+            </div>
+
+            <div id="bitacoraLista" class="bitacora-lista">
+                <p class="cargando">Cargando bitacora...</p>
+            </div>
+        </div>
+    </div>
+
     <footer class="app-footer">
-        <p>ExpresoFast &copy; 2026 - Laboratorio 5, IF0009 Desarrollo de Software IV</p>
+        <p>ExpresoFast &copy; 2026 - Laboratorio 6, IF0009 Desarrollo de Software IV</p>
     </footer>
 
     <script src="app.js"></script>
