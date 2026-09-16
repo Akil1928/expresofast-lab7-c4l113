@@ -32,10 +32,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Pruebas unitarias de EnvioService, aislando por completo la base de datos
- * mediante mocks de Mockito sobre los repositorios (JPA).
- */
+
+//Pruebas unitarias de EnvioService, aislando por completo la base de datos
+//mediante mocks de Mockito sobre los repositorios (JPA).
 @ExtendWith(MockitoExtension.class)
 class EnvioServiceTest {
 
