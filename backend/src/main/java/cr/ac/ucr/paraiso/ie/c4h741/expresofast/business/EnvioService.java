@@ -187,4 +187,35 @@ public class EnvioService {
                         : null
         );
     }
+   
+     //Cancela un envio. Un envio EN_TRANSITO no se puede cancelar directamente
+     //(debe completarse la entrega o el conductor debe reportar una incidencia).
+    @Transactional
+    public EnvioResponseDTO cancelarEnvio(Integer envioId) {
+        Envio envio = envioRepository.findById(envioId)
+                .orElseThrow(() -> new ResourceNotFoundException("El envio con id " + envioId + " no existe."));
+
+        if ("EN_TRANSITO".equals(envio.getEstadoEnvio())) {
+            throw new NegocioException(
+                    "No se puede cancelar el envio " + envio.getCodigoRastreo()
+                            + " porque ya esta en transito. Contacte al conductor asignado.");
+        }
+
+        String estadoAnterior = envio.getEstadoEnvio();
+        validarTransicion(estadoAnterior, "CANCELADO", envio.getCodigoRastreo());
+
+        Usuario usuarioActual = obtenerUsuarioAutenticado();
+
+        envio.setEstadoEnvio("CANCELADO");
+
+        BitacoraEnvio bitacora = new BitacoraEnvio();
+        bitacora.setEnvio(envio);
+        bitacora.setEstadoAnterior(estadoAnterior);
+        bitacora.setEstadoNuevo("CANCELADO");
+        bitacora.setUsuario(usuarioActual);
+        bitacora.setObservaciones("Cancelado por el usuario.");
+        bitacoraEnvioRepository.save(bitacora);
+
+        return toResponseDTO(envio);
+    }
 }
