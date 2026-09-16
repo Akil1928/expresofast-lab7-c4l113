@@ -1,5 +1,6 @@
 package cr.ac.ucr.paraiso.ie.c4h741.expresofast.business;
 
+import java.util.List;
 import cr.ac.ucr.paraiso.ie.c4h741.expresofast.data.BitacoraEnvioRepository;
 import cr.ac.ucr.paraiso.ie.c4h741.expresofast.data.ConductorRepository;
 import cr.ac.ucr.paraiso.ie.c4h741.expresofast.data.EnvioRepository;
@@ -201,5 +202,147 @@ class EnvioServiceTest {
     void calcularTarifa_PesoInvalido_LanzaExcepcion() {
         assertThrows(NegocioException.class, () -> envioService.calcularTarifa(0, 10));
         assertThrows(NegocioException.class, () -> envioService.calcularTarifa(-5, 10));
+    }
+        @Test
+    @DisplayName("crear: si el conductor indicado no existe lanza NegocioException")
+    void crearEnvio_ConductorInexistente_LanzaExcepcion() {
+        EnvioRequestDTO request = new EnvioRequestDTO();
+        request.setVehiculoId(1);
+        request.setConductorId(99);
+        request.setPesoKg(new BigDecimal("10"));
+
+        when(vehiculoRepository.findById(1)).thenReturn(Optional.of(vehiculo));
+        when(conductorRepository.findById(99)).thenReturn(Optional.empty());
+
+        assertThrows(NegocioException.class, () -> envioService.crear(request));
+        verify(envioRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("listarOptimizado: retorna la lista de envios mapeada a DTO")
+    void listarOptimizado_RetornaListaMapeada() {
+        Envio envio = new Envio();
+        envio.setId(1);
+        envio.setCodigoRastreo("EXP-0001");
+        envio.setEstadoEnvio("PENDIENTE");
+        envio.setVehiculo(vehiculo);
+        envio.setConductor(conductor);
+
+        when(envioRepository.findAllOptimizado()).thenReturn(List.of(envio));
+
+        List<EnvioResponseDTO> resultado = envioService.listarOptimizado();
+
+        assertThat(resultado).hasSize(1);
+        assertThat(resultado.get(0).getCodigoRastreo()).isEqualTo("EXP-0001");
+        assertThat(resultado.get(0).getPlacaVehiculo()).isEqualTo("SJO-1234");
+    }
+
+    @Test
+    @DisplayName("actualizarEstado: con un estado invalido (no en la lista permitida) lanza NegocioException")
+    void actualizarEstado_EstadoInvalido_LanzaExcepcion() {
+        CambioEstadoDTO request = new CambioEstadoDTO();
+        request.setNuevoEstado("ESTADO_INEXISTENTE");
+
+        assertThrows(NegocioException.class, () -> envioService.actualizarEstado(1, request));
+        verify(envioRepository, never()).findById(any());
+    }
+
+    @Test
+    @DisplayName("actualizarEstado: con una transicion valida actualiza el envio y registra bitacora")
+    void actualizarEstado_TransicionValida_ActualizaYRegistraBitacora() {
+        Envio envio = new Envio();
+        envio.setId(2);
+        envio.setCodigoRastreo("EXP-0002");
+        envio.setEstadoEnvio("PENDIENTE");
+        envio.setVehiculo(vehiculo);
+        envio.setConductor(conductor);
+
+        cr.ac.ucr.paraiso.ie.c4h741.expresofast.domain.Usuario usuario =
+                new cr.ac.ucr.paraiso.ie.c4h741.expresofast.domain.Usuario();
+        usuario.setUsername("admin");
+        usuario.setNombreCompleto("Javier Moreno Sibaja");
+
+        CambioEstadoDTO request = new CambioEstadoDTO();
+        request.setNuevoEstado("EN_TRANSITO");
+        request.setObservaciones("Sale de bodega");
+
+        when(envioRepository.findById(2)).thenReturn(Optional.of(envio));
+        when(usuarioRepository.findByUsername(any())).thenReturn(Optional.of(usuario));
+
+        var auth = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                "admin", null, List.of());
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+
+        EnvioResponseDTO resultado = envioService.actualizarEstado(2, request);
+
+        assertThat(resultado.getEstadoEnvio()).isEqualTo("EN_TRANSITO");
+        verify(bitacoraEnvioRepository, times(1)).save(any());
+
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    @DisplayName("obtenerBitacora: si el envio no existe lanza ResourceNotFoundException")
+    void obtenerBitacora_EnvioInexistente_LanzaExcepcion() {
+        when(envioRepository.existsById(999)).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class, () -> envioService.obtenerBitacora(999));
+    }
+
+    @Test
+    @DisplayName("actualizarEstadoMasivoPorVehiculo: si el vehiculo no existe lanza NegocioException")
+    void actualizarEstadoMasivoPorVehiculo_VehiculoInexistente_LanzaExcepcion() {
+        when(vehiculoRepository.existsById(99)).thenReturn(false);
+
+        assertThrows(NegocioException.class,
+                () -> envioService.actualizarEstadoMasivoPorVehiculo(99, "EN_TRANSITO"));
+    }
+
+    @Test
+    @DisplayName("actualizarEstadoMasivoPorVehiculo: con datos validos retorna la cantidad de filas actualizadas")
+    void actualizarEstadoMasivoPorVehiculo_DatosValidos_RetornaFilasActualizadas() {
+        when(vehiculoRepository.existsById(1)).thenReturn(true);
+        when(envioRepository.actualizarEstadoPorVehiculo(1, "EN_TRANSITO")).thenReturn(3);
+
+        int resultado = envioService.actualizarEstadoMasivoPorVehiculo(1, "EN_TRANSITO");
+
+        assertThat(resultado).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("cancelarEnvio: con un envio PENDIENTE lo cancela correctamente")
+    void cancelarEnvio_EnvioPendiente_CancelaCorrectamente() {
+        Envio envio = new Envio();
+        envio.setId(7);
+        envio.setCodigoRastreo("EXP-0007");
+        envio.setEstadoEnvio("PENDIENTE");
+        envio.setVehiculo(vehiculo);
+        envio.setConductor(conductor);
+
+        cr.ac.ucr.paraiso.ie.c4h741.expresofast.domain.Usuario usuario =
+                new cr.ac.ucr.paraiso.ie.c4h741.expresofast.domain.Usuario();
+        usuario.setUsername("admin");
+
+        when(envioRepository.findById(7)).thenReturn(Optional.of(envio));
+        when(usuarioRepository.findByUsername(any())).thenReturn(Optional.of(usuario));
+
+        var auth = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                "admin", null, List.of());
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+
+        EnvioResponseDTO resultado = envioService.cancelarEnvio(7);
+
+        assertThat(resultado.getEstadoEnvio()).isEqualTo("CANCELADO");
+        verify(bitacoraEnvioRepository, times(1)).save(any());
+
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    @DisplayName("cancelarEnvio: si el envio no existe lanza ResourceNotFoundException")
+    void cancelarEnvio_EnvioInexistente_LanzaExcepcion() {
+        when(envioRepository.findById(999)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> envioService.cancelarEnvio(999));
     }
 }
