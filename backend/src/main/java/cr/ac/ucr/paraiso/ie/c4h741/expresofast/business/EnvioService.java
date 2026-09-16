@@ -29,6 +29,10 @@ public class EnvioService {
 
     private static final List<String> ESTADOS_VALIDOS =
             List.of("PENDIENTE", "EN_TRANSITO", "ENTREGADO", "CANCELADO");
+    //tarifa: base + costo por kg + costo por km
+    private static final double TARIFA_BASE = 500.0;
+    private static final double TARIFA_POR_KG = 150.0;
+    private static final double TARIFA_POR_KM = 200.0;
 
     // Estados finales: una vez alcanzados, no pueden volver a PENDIENTE ni EN_TRANSITO
     private static final Set<String> ESTADOS_FINALES = Set.of("ENTREGADO", "CANCELADO");
@@ -217,5 +221,17 @@ public class EnvioService {
         bitacoraEnvioRepository.save(bitacora);
 
         return toResponseDTO(envio);
+    }
+      //calcula la tarifa de un envio basado en el peso y la distancia a recorrer
+     //formula: tarifa = (pesoKg * TARIFA_POR_KG) + (distanciaKm * TARIFA_POR_KM) + TARIFA_BASE
+  
+    public double calcularTarifa(double pesoKg, double distanciaKm) {
+        if (pesoKg <= 0) {
+            throw new NegocioException("El peso debe ser mayor a cero para calcular la tarifa.");
+        }
+        if (distanciaKm < 0) {
+            throw new NegocioException("La distancia no puede ser negativa.");
+        }
+        return (pesoKg * TARIFA_POR_KG) + (distanciaKm * TARIFA_POR_KM) + TARIFA_BASE;
     }
 }

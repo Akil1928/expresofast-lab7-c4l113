@@ -20,7 +20,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.math.BigDecimal;
 import java.util.Optional;
 
@@ -178,5 +181,25 @@ class EnvioServiceTest {
         assertThrows(NegocioException.class, () -> envioService.cancelarEnvio(5));
         verify(envioRepository, never()).save(any());
         verify(bitacoraEnvioRepository, never()).save(any());
+    }
+        @ParameterizedTest
+    @CsvSource({
+            "10.0, 5.0, 3000.0",
+            "20.0, 15.0, 6500.0",
+            "2.5, 100.0, 20875.0",
+            "1.0, 0.0, 650.0"
+    })
+    @DisplayName("calcularTarifa: calcula correctamente segun peso y distancia")
+    void calcularTarifa_CasosVariados_CalculaCorrectamente(
+            double pesoKg, double distanciaKm, double tarifaEsperada) {
+        double tarifaCalculada = envioService.calcularTarifa(pesoKg, distanciaKm);
+        assertEquals(tarifaEsperada, tarifaCalculada, 0.01);
+    }
+
+    @Test
+    @DisplayName("calcularTarifa: peso cero o negativo lanza NegocioException")
+    void calcularTarifa_PesoInvalido_LanzaExcepcion() {
+        assertThrows(NegocioException.class, () -> envioService.calcularTarifa(0, 10));
+        assertThrows(NegocioException.class, () -> envioService.calcularTarifa(-5, 10));
     }
 }
