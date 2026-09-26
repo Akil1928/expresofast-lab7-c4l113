@@ -20,6 +20,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import cr.ac.ucr.paraiso.ie.c4l113.expresofast.dto.EnvioDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Set;
@@ -123,6 +128,47 @@ public class EnvioService {
         return toResponseDTO(envio);
     }
 
+        /**
+     * Paginación relacional física a nivel de SQL. Permite filtrar por
+     * término de búsqueda (código de rastreo o dirección) y/o por estado,
+     * ordenando dinámicamente según sortBy/dir.
+     */
+    @Transactional(readOnly = true)
+    public Page<EnvioDTO> listarPaginado(int page, int size, String sortBy, String dir,
+                                          String busqueda, String estado) {
+        String campoOrden = (sortBy == null || sortBy.isBlank()) ? "fechaCreacion" : sortBy;
+        Sort.Direction direccion = "asc".equalsIgnoreCase(dir) ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direccion, campoOrden));
+
+        String busquedaNormalizada = (busqueda == null || busqueda.isBlank()) ? null : busqueda.trim();
+        String estadoNormalizado = (estado == null || estado.isBlank()) ? null : estado.toUpperCase();
+
+        Page<Envio> resultado = envioRepository.buscarPaginado(busquedaNormalizada, estadoNormalizado, pageable);
+        return resultado.map(this::toEnvioDTO);
+    }
+
+    /**
+     * Invoca el procedimiento almacenado relacional SP_OBTENER_ENVIOS_POR_ESTADO.
+     */
+    @Transactional(readOnly = true)
+    public List<EnvioDTO> listarViaStoredProcedure(String estado) {
+        validarEstado(estado);
+        return envioRepository.obtenerEnviosPorEstado(estado.toUpperCase()).stream()
+                .map(this::toEnvioDTO)
+                .toList();
+    }
+
+    private EnvioDTO toEnvioDTO(Envio envio) {
+        return new EnvioDTO(
+                envio.getId(),
+                envio.getCodigoRastreo(),
+                envio.getDireccionDestino(),
+                envio.getCosto(),
+                envio.getEstadoEnvio(),
+                envio.getFechaCreacion()
+        );
+    }
     @Transactional
     public int actualizarEstadoMasivoPorVehiculo(Integer vehiculoId, String nuevoEstado) {
         validarEstado(nuevoEstado);

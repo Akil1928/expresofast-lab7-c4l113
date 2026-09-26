@@ -3,8 +3,21 @@ package cr.ac.ucr.paraiso.ie.c4l113.expresofast.domain;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import jakarta.persistence.NamedStoredProcedureQuery;
+import jakarta.persistence.StoredProcedureParameter;
+import jakarta.persistence.ParameterMode;
+
+@NamedStoredProcedureQuery(
+        name = "Envio.obtenerEnviosPorEstado",
+        procedureName = "SP_OBTENER_ENVIOS_POR_ESTADO",
+        resultClasses = Envio.class,
+        parameters = {
+                @StoredProcedureParameter(mode = ParameterMode.IN, name = "pEstado", type = String.class)
+        }
+)
 
 @Entity
+
 @Table(name = "Envio")
 public class Envio extends AuditableEntity {
 

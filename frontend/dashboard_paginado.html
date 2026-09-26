@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpresoFast - Consola Paginada</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="logo">🚚 ExpresoFast</div>
+        <nav class="main-nav">
+            <a href="index.html">Tablero</a>
+            <a href="dashboard_paginado.html">Paginación</a>
+        </nav>
+        <div class="usuario-info">
+            <span id="usuarioActual"></span>
+            <button id="btnLogout" class="btn-logout">Cerrar Sesion</button>
+        </div>
+    </header>
+
+    <main class="app-main" style="grid-template-columns: 1fr;">
+
+        <section class="dashboard">
+            <h1>Consola de Envíos Paginada</h1>
+
+            <!-- Barra de filtros -->
+            <form id="formFiltros" class="form-nuevo-envio" style="flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 1rem;">
+                <div>
+                    <label for="busqueda">Buscar (código o dirección)</label>
+                    <input type="text" id="busqueda" placeholder="EXP-1001 o Cartago...">
+                </div>
+
+                <div>
+                    <label for="estadoFiltro">Estado</label>
+                    <select id="estadoFiltro">
+                        <option value="">TODOS</option>
+                        <option value="PENDIENTE">PENDIENTE</option>
+                        <option value="EN_TRANSITO">EN_TRANSITO</option>
+                        <option value="ENTREGADO">ENTREGADO</option>
+                        <option value="CANCELADO">CANCELADO</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="tamanoPagina">Ítems por página</label>
+                    <select id="tamanoPagina">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="ordenarPor">Ordenar por</label>
+                    <select id="ordenarPor">
+                        <option value="fechaCreacion">Fecha creación</option>
+                        <option value="costo">Monto flete</option>
+                        <option value="codigoRastreo">Código rastreo</option>
+                        <option value="estadoEnvio">Estado</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="direccionOrden">Dirección</label>
+                    <select id="direccionOrden">
+                        <option value="desc">Descendente</option>
+                        <option value="asc">Ascendente</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem;">
+                    <button type="submit" class="btn-primario">Buscar (Paginado)</button>
+                    <button type="button" id="btnStoredProcedure" class="btn-secundario">Ver por Stored Procedure</button>
+                </div>
+            </form>
+
+            <p id="mensajeFiltros" class="mensaje-form"></p>
+
+            <!-- Tabla semántica -->
+            <table class="tabla-envios" id="tablaEnvios" style="width: 100%; border-collapse: collapse; margin-top: 1.5rem; background: var(--card-bg); box-shadow: var(--shadow); border-radius: var(--radius); overflow: hidden;">
+                <thead>
+                    <tr style="background-color: var(--primary-color); color: white; text-align: left;">
+                        <th style="padding: 0.75rem;">Rastreo</th>
+                        <th style="padding: 0.75rem;">Dirección Destino</th>
+                        <th style="padding: 0.75rem;">Monto Flete</th>
+                        <th style="padding: 0.75rem;">Estado</th>
+                        <th style="padding: 0.75rem;">Fecha Creación</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTablaEnvios">
+                    <tr><td colspan="5" style="padding: 1rem;">Cargando envíos...</td></tr>
+                </tbody>
+            </table>
+
+            <!-- Barra de navegación de paginación -->
+            <nav class="paginador" aria-label="Navegación de páginas" style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-top: 1.5rem;">
+                <button id="btnPrimera" class="btn-secundario">&laquo; Primera</button>
+                <button id="btnAnterior" class="btn-secundario">&lsaquo; Anterior</button>
+                <span id="indicadorPagina" role="status" aria-live="polite">Página 1 de 1 (Total: 0 envíos)</span>
+                <button id="btnSiguiente" class="btn-secundario">Siguiente &rsaquo;</button>
+                <button id="btnUltima" class="btn-secundario">Última &raquo;</button>
+            </nav>
+        </section>
+
+    </main>
+
+    <footer class="app-footer">
+        <p>ExpresoFast &copy; 2026 - Laboratorio 9, IF0009 Desarrollo de Software IV</p>
+    </footer>
+
+    <script src="app.js"></script>
+    <script src="dashboard_paginado.js"></script>
+</body>
+</html>

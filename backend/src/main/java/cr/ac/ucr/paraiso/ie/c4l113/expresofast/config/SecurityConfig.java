@@ -60,6 +60,8 @@ public class SecurityConfig {
                     .hasAnyAuthority("ROLE_ADMIN", "ROLE_OPERADOR")
                 .requestMatchers("/api/vehiculos/**")
                     .hasAuthority("ROLE_ADMIN")
+                                    .requestMatchers(HttpMethod.GET, "/api/v1/envios/**")
+                    .hasAnyAuthority("ROLE_ADMIN", "ROLE_OPERADOR", "ROLE_CONDUCTOR")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

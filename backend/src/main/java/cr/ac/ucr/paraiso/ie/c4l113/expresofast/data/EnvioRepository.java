@@ -8,10 +8,36 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.query.Procedure;
 @Repository
 public interface EnvioRepository extends JpaRepository<Envio, Integer> {
 
+            /**
+     * Invoca el procedimiento almacenado SP_OBTENER_ENVIOS_POR_ESTADO.
+     */
+    @Procedure(name = "Envio.obtenerEnviosPorEstado")
+    List<Envio> obtenerEnviosPorEstado(@Param("pEstado") String pEstado);
+
+    /**
+     * Paginación relacional física por estado.
+     */
+    Page<Envio> findByEstadoEnvio(String estadoEnvio, Pageable pageable);
+
+    /**
+     * Paginación relacional con búsqueda por término (dirección o código de rastreo).
+     */
+    @Query("""
+            SELECT e FROM Envio e
+            WHERE (:busqueda IS NULL OR
+                   LOWER(e.codigoRastreo) LIKE LOWER(CONCAT('%', :busqueda, '%')) OR
+                   LOWER(e.direccionDestino) LIKE LOWER(CONCAT('%', :busqueda, '%')))
+            AND (:estado IS NULL OR e.estadoEnvio = :estado)
+            """)
+    Page<Envio> buscarPaginado(@Param("busqueda") String busqueda,
+                                @Param("estado") String estado,
+                                Pageable pageable);
     /**
      * Recupera todos los envios junto con Vehiculo, EmpresaLogistica y Conductor
      * en un unico viaje a la base de datos, evitando el fallo N+1 SELECT.
