@@ -1,0 +1,72 @@
+<section class="contenedor-form">
+  <h1>Registrar Nuevo Envío</h1>
+
+  <form #formEnvio="ngForm" (ngSubmit)="registrar(formEnvio)">
+
+    <label for="codigoRastreo">Código de Rastreo *</label>
+    <div class="fila-codigo">
+      <input
+        type="text"
+        id="codigoRastreo"
+        name="codigoRastreo"
+        [(ngModel)]="payload.codigoRastreo"
+        required
+        placeholder="EXP-2026-1001">
+      <button type="button" class="btn-secundario" (click)="generarCodigoRastreo()">Generar</button>
+    </div>
+
+    <label for="direccionDestino">Dirección Destino *</label>
+    <input
+      type="text"
+      id="direccionDestino"
+      name="direccionDestino"
+      [(ngModel)]="payload.direccionDestino"
+      required
+      placeholder="Paraíso, Cartago">
+
+    <label for="pesoKg">Peso (kg) *</label>
+    <input
+      type="number"
+      id="pesoKg"
+      name="pesoKg"
+      [(ngModel)]="payload.pesoKg"
+      required
+      min="0.01"
+      step="0.01">
+
+    <label for="costo">Monto de Flete (₡) *</label>
+    <input
+      type="number"
+      id="costo"
+      name="costo"
+      [(ngModel)]="payload.costo"
+      required
+      min="0"
+      step="0.01">
+
+    <label for="vehiculoId">ID Vehículo *</label>
+    <input
+      type="number"
+      id="vehiculoId"
+      name="vehiculoId"
+      [(ngModel)]="payload.vehiculoId"
+      required
+      min="1">
+
+    <label for="conductorId">ID Conductor *</label>
+    <input
+      type="number"
+      id="conductorId"
+      name="conductorId"
+      [(ngModel)]="payload.conductorId"
+      required
+      min="1">
+
+    <button type="submit" class="btn-primario" [disabled]="enviando">
+      {{ enviando ? 'Registrando...' : 'Registrar Envío' }}
+    </button>
+
+    <p *ngIf="mensajeExito" class="mensaje-exito">{{ mensajeExito }}</p>
+    <p *ngIf="mensajeError" class="mensaje-error">{{ mensajeError }}</p>
+  </form>
+</section>

@@ -9,6 +9,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import cr.ac.ucr.paraiso.ie.c4l113.expresofast.dto.EnvioRequestDTO;
+import cr.ac.ucr.paraiso.ie.c4l113.expresofast.dto.EnvioResponseDTO;
+import cr.ac.ucr.paraiso.ie.c4l113.expresofast.dto.CambioEstadoDTO;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -18,6 +27,10 @@ import java.util.List;
  * Se mantiene separado de EnvioController (/api/envios) para no alterar
  * las rutas ya consumidas por el cliente web de los laboratorios previos.
  */
+
+
+
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/v1/envios")
 public class EnvioPaginadoController {
@@ -51,5 +64,40 @@ public class EnvioPaginadoController {
     public ResponseEntity<List<EnvioDTO>> listarViaStoredProcedure(@PathVariable String estado) {
         List<EnvioDTO> resultado = envioService.listarViaStoredProcedure(estado);
         return ResponseEntity.ok(resultado);
+    }
+
+        /**
+     * GET /api/v1/envios/todos — listado completo sin paginar (Angular EnvioListComponent).
+     */
+    @GetMapping("/todos")
+    public ResponseEntity<List<EnvioDTO>> listarTodos() {
+        return ResponseEntity.ok(envioService.listarTodos());
+    }
+
+    /**
+     * GET /api/v1/envios/rastreo/{codigo} — Angular EnvioTrackingComponent.
+     */
+    @GetMapping("/rastreo/{codigo}")
+    public ResponseEntity<EnvioDTO> buscarPorRastreo(@PathVariable String codigo) {
+        return ResponseEntity.ok(envioService.buscarPorCodigoRastreo(codigo));
+    }
+
+    /**
+     * POST /api/v1/envios — registro de nuevo envio desde Angular EnvioFormComponent.
+     */
+    @PostMapping
+    public ResponseEntity<EnvioResponseDTO> crear(@Valid @RequestBody EnvioRequestDTO request) {
+        EnvioResponseDTO creado = envioService.crear(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creado);
+    }
+
+    /**
+     * PATCH /api/v1/envios/{id}/estado — actualizacion de estado desde Angular EnvioListComponent.
+     */
+    @PatchMapping("/{id}/estado")
+    public ResponseEntity<EnvioDTO> actualizarEstado(@PathVariable Integer id,
+                                                       @Valid @RequestBody CambioEstadoDTO request) {
+        EnvioDTO actualizado = envioService.actualizarEstadoSimple(id, request.getNuevoEstado());
+        return ResponseEntity.ok(actualizado);
     }
 }

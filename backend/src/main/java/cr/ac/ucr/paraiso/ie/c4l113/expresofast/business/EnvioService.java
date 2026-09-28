@@ -158,6 +158,46 @@ public class EnvioService {
                 .map(this::toEnvioDTO)
                 .toList();
     }
+        /**
+     * Listado completo sin paginar, consumido por EnvioListComponent en Angular.
+     */
+    @Transactional(readOnly = true)
+    public List<EnvioDTO> listarTodos() {
+        return envioRepository.findAll().stream()
+                .map(this::toEnvioDTO)
+                .toList();
+    }
+
+    /**
+     * Busqueda por codigo de rastreo, consumida por EnvioTrackingComponent.
+     */
+    @Transactional(readOnly = true)
+    public EnvioDTO buscarPorCodigoRastreo(String codigoRastreo) {
+        Envio envio = envioRepository.findByCodigoRastreo(codigoRastreo)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No existe un envio con el codigo de rastreo " + codigoRastreo));
+        return toEnvioDTO(envio);
+    }
+
+    /**
+     * Actualizacion de estado simplificada para el cliente Angular (Lab 10),
+     * que no maneja JWT/usuario autenticado. No registra bitacora de auditoria
+     * (esa funcionalidad se conserva intacta para el cliente Vanilla JS del Lab 6-9).
+     */
+    @Transactional
+    public EnvioDTO actualizarEstadoSimple(Integer envioId, String nuevoEstado) {
+        String estado = nuevoEstado.toUpperCase();
+        validarEstado(estado);
+
+        Envio envio = envioRepository.findById(envioId)
+                .orElseThrow(() -> new ResourceNotFoundException("El envio con id " + envioId + " no existe."));
+
+        validarTransicion(envio.getEstadoEnvio(), estado, envio.getCodigoRastreo());
+        envio.setEstadoEnvio(estado);
+        // Dirty Checking persiste el cambio al finalizar la transaccion.
+
+        return toEnvioDTO(envio);
+    }
 
     private EnvioDTO toEnvioDTO(Envio envio) {
         return new EnvioDTO(

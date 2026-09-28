@@ -1,0 +1,42 @@
+<section class="contenedor-lista">
+  <h1>Guías de Envío</h1>
+
+  <p *ngIf="mensajeExito" class="mensaje-exito">{{ mensajeExito }}</p>
+  <p *ngIf="mensajeError" class="mensaje-error">{{ mensajeError }}</p>
+  <p *ngIf="cargando" class="cargando">Cargando envíos...</p>
+
+  <table *ngIf="!cargando && envios.length > 0" class="tabla-envios">
+    <thead>
+      <tr>
+        <th>Rastreo</th>
+        <th>Dirección Destino</th>
+        <th>Flete</th>
+        <th>Estado</th>
+        <th>Fecha Creación</th>
+        <th>Actualizar Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let envio of envios">
+        <td>{{ envio.codigoRastreo }}</td>
+        <td>{{ envio.direccionDestino }}</td>
+        <td>₡{{ envio.montoFlete | number: '1.2-2' }}</td>
+        <td>
+          <span [class]="claseInsignia(envio.estado)">{{ envio.estado }}</span>
+        </td>
+        <td>{{ envio.fechaCreacion | date: 'short' }}</td>
+        <td>
+          <select (change)="cambiarEstado(envio, $event)">
+            <option *ngFor="let estado of estadosDisponibles" [value]="estado" [selected]="estado === envio.estado">
+              {{ estado }}
+            </option>
+          </select>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p *ngIf="!cargando && envios.length === 0 && !mensajeError" class="cargando">
+    No hay envíos registrados.
+  </p>
+</section>

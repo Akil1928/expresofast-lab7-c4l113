@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.query.Procedure;
@@ -24,7 +25,10 @@ public interface EnvioRepository extends JpaRepository<Envio, Integer> {
      * Paginación relacional física por estado.
      */
     Page<Envio> findByEstadoEnvio(String estadoEnvio, Pageable pageable);
-
+    /**
+     * Busca un envio por su codigo de rastreo unico (usado por EnvioTrackingComponent en Angular).
+     */
+    Optional<Envio> findByCodigoRastreo(String codigoRastreo);
     /**
      * Paginación relacional con búsqueda por término (dirección o código de rastreo).
      */

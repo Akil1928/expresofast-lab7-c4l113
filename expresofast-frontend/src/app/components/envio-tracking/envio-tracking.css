@@ -1,0 +1,85 @@
+.contenedor-tracking {
+  padding: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.form-busqueda {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-busqueda input {
+  flex: 1;
+  padding: 0.65rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.btn-primario {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.65rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primario:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ficha-envio {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.ficha-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.insignia {
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.insignia-PENDIENTE { background-color: #fef3c7; color: #92400e; }
+.insignia-EN_TRANSITO { background-color: #dbeafe; color: #1e40af; }
+.insignia-ENTREGADO { background-color: #d1fae5; color: #065f46; }
+.insignia-CANCELADO { background-color: #fee2e2; color: #991b1b; }
+
+.barra-progreso-contenedor {
+  width: 100%;
+  height: 12px;
+  background-color: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.barra-progreso {
+  height: 100%;
+  background-color: #2563eb;
+  transition: width 0.4s ease;
+}
+
+.mensaje-cancelado {
+  color: #ef4444;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+.mensaje-error { color: #ef4444; font-weight: 600; margin-top: 0.5rem; }
+.cargando { color: #64748b; }

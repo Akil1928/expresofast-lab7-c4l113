@@ -1,0 +1,43 @@
+.contenedor-lista {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.tabla-envios {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tabla-envios th, .tabla-envios td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tabla-envios th {
+  background-color: #2563eb;
+  color: white;
+}
+
+.insignia {
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.insignia-PENDIENTE { background-color: #fef3c7; color: #92400e; }
+.insignia-EN_TRANSITO { background-color: #dbeafe; color: #1e40af; }
+.insignia-ENTREGADO { background-color: #d1fae5; color: #065f46; }
+.insignia-CANCELADO { background-color: #fee2e2; color: #991b1b; }
+
+.mensaje-error { color: #ef4444; font-weight: 600; }
+.mensaje-exito { color: #10b981; font-weight: 600; }
+.cargando { color: #64748b; }

@@ -1,0 +1,39 @@
+<section class="contenedor-tracking">
+  <h1>Rastrear Guía de Envío</h1>
+
+  <form class="form-busqueda" (ngSubmit)="buscar()">
+    <input
+      type="text"
+      name="codigoBusqueda"
+      [(ngModel)]="codigoBusqueda"
+      placeholder="Ej: EXP-2026-1001"
+      required>
+    <button type="submit" class="btn-primario" [disabled]="buscando">
+      {{ buscando ? 'Buscando...' : 'Buscar' }}
+    </button>
+  </form>
+
+  <p *ngIf="mensajeError" class="mensaje-error">{{ mensajeError }}</p>
+
+  <article *ngIf="envio" class="ficha-envio">
+    <header class="ficha-header">
+      <h2>{{ envio.codigoRastreo }}</h2>
+      <span [class]="claseInsignia(envio.estado)">{{ envio.estado }}</span>
+    </header>
+
+    <p><strong>Dirección Destino:</strong> {{ envio.direccionDestino }}</p>
+    <p><strong>Monto Flete:</strong> ₡{{ envio.montoFlete | number: '1.2-2' }}</p>
+    <p><strong>Fecha de Creación:</strong> {{ envio.fechaCreacion | date: 'medium' }}</p>
+
+    <div class="barra-progreso-contenedor" *ngIf="envio.estado !== 'CANCELADO'">
+      <div class="barra-progreso" [style.width.%]="porcentajeProgreso()"></div>
+    </div>
+    <p *ngIf="envio.estado === 'CANCELADO'" class="mensaje-cancelado">
+      Este envío fue cancelado.
+    </p>
+  </article>
+
+  <p *ngIf="buscoAlgunaVez && !envio && !mensajeError && !buscando" class="cargando">
+    Ingrese un código de rastreo para ver el detalle.
+  </p>
+</section>
