@@ -25,6 +25,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import cr.ac.ucr.paraiso.ie.c4l113.expresofast.domain.Paquete;
+import cr.ac.ucr.paraiso.ie.c4l113.expresofast.dto.EnvioRegistroDTO;
+import cr.ac.ucr.paraiso.ie.c4l113.expresofast.dto.PaqueteDTO;
+import java.math.BigDecimal;
 
 import java.util.List;
 import java.util.Set;
@@ -126,6 +130,71 @@ public class EnvioService {
         bitacoraEnvioRepository.save(bitacora);
 
         return toResponseDTO(envio);
+    }
+
+        /**
+     * Registra un envio junto con todos sus paquetes asociados en una sola
+     * transaccion (Lab 11). El peso total del envio se calcula como la suma
+     * de los pesos de cada paquete, respetando la regla de capacidad del vehiculo.
+     */
+    @Transactional
+    public EnvioDTO registrarEnvioAvanzado(EnvioRegistroDTO request) {
+        Vehiculo vehiculo = vehiculoRepository.findById(request.getVehiculoId())
+                .orElseThrow(() -> new NegocioException("El vehiculo indicado no existe."));
+
+        Conductor conductor = conductorRepository.findById(request.getConductorId())
+                .orElseThrow(() -> new NegocioException("El conductor indicado no existe."));
+
+        if (envioRepository.existsByCodigoRastreo(request.getNumeroTracking())) {
+            throw new NegocioException(
+                    "El numero de rastreo " + request.getNumeroTracking() + " ya esta en uso.");
+        }
+
+        if (!request.getFechaEntregaEstimada().isAfter(request.getFechaDespacho())) {
+            throw new NegocioException(
+                    "La fecha de entrega estimada debe ser posterior a la fecha de despacho.");
+        }
+
+        BigDecimal pesoTotal = request.getPaquetes().stream()
+                .map(PaqueteDTO::getPesoKg)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (vehiculo.getCapacidadKg() == null || pesoTotal.compareTo(vehiculo.getCapacidadKg()) > 0) {
+            throw new NegocioException(
+                    "El peso total de los paquetes (" + pesoTotal + " kg) supera la capacidad del vehiculo "
+                            + vehiculo.getPlaca() + " (" + vehiculo.getCapacidadKg() + " kg).");
+        }
+
+        Envio envio = new Envio();
+        envio.setCodigoRastreo(request.getNumeroTracking());
+        envio.setDireccionDestino(request.getDireccionDestino());
+        envio.setPesoKg(pesoTotal);
+        envio.setCosto(request.getCosto());
+        envio.setEstadoEnvio("PENDIENTE");
+        envio.setFechaDespacho(request.getFechaDespacho());
+        envio.setFechaEntregaEstimada(request.getFechaEntregaEstimada());
+        envio.setVehiculo(vehiculo);
+        envio.setConductor(conductor);
+
+        for (PaqueteDTO paqueteDTO : request.getPaquetes()) {
+            Paquete paquete = new Paquete();
+            paquete.setDescripcion(paqueteDTO.getDescripcion());
+            paquete.setPesoKg(paqueteDTO.getPesoKg());
+            envio.agregarPaquete(paquete);
+        }
+
+        Envio guardado = envioRepository.save(envio);
+        // cascade = CascadeType.ALL en Envio.paquetes persiste los paquetes automaticamente.
+
+        return toEnvioDTO(guardado);
+    }
+
+    /**
+     * Verifica si un numero de rastreo ya existe (Lab 11, validador asincrono de Angular).
+     */
+    @Transactional(readOnly = true)
+    public boolean existeTracking(String numeroTracking) {
+        return envioRepository.existsByCodigoRastreo(numeroTracking);
     }
 
         /**

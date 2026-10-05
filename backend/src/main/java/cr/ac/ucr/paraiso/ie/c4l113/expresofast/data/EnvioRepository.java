@@ -32,6 +32,10 @@ public interface EnvioRepository extends JpaRepository<Envio, Integer> {
     /**
      * Paginación relacional con búsqueda por término (dirección o código de rastreo).
      */
+        /**
+     * Verifica si ya existe un envio con ese codigo de rastreo (Lab 11, validador asincrono).
+     */
+    boolean existsByCodigoRastreo(String codigoRastreo);
     @Query("""
             SELECT e FROM Envio e
             WHERE (:busqueda IS NULL OR

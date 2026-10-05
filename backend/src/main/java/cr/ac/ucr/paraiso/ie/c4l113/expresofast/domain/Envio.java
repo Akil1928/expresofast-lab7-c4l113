@@ -3,9 +3,9 @@ package cr.ac.ucr.paraiso.ie.c4l113.expresofast.domain;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
-import jakarta.persistence.NamedStoredProcedureQuery;
-import jakarta.persistence.StoredProcedureParameter;
-import jakarta.persistence.ParameterMode;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @NamedStoredProcedureQuery(
         name = "Envio.obtenerEnviosPorEstado",
@@ -15,9 +15,7 @@ import jakarta.persistence.ParameterMode;
                 @StoredProcedureParameter(mode = ParameterMode.IN, name = "pEstado", type = String.class)
         }
 )
-
 @Entity
-
 @Table(name = "Envio")
 public class Envio extends AuditableEntity {
 
@@ -41,6 +39,12 @@ public class Envio extends AuditableEntity {
     @Column(name = "estado_envio", nullable = false, length = 20)
     private String estadoEnvio; // PENDIENTE, EN_TRANSITO, ENTREGADO, CANCELADO
 
+    @Column(name = "fecha_despacho")
+    private LocalDateTime fechaDespacho;
+
+    @Column(name = "fecha_entrega_estimada")
+    private LocalDateTime fechaEntregaEstimada;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehiculo_id")
     private Vehiculo vehiculo;
@@ -48,6 +52,9 @@ public class Envio extends AuditableEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conductor_id")
     private Conductor conductor;
+
+    @OneToMany(mappedBy = "envio", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Paquete> paquetes = new ArrayList<>();
 
     // ---- Constructores ----
     public Envio() {
@@ -102,6 +109,22 @@ public class Envio extends AuditableEntity {
         this.estadoEnvio = estadoEnvio;
     }
 
+    public LocalDateTime getFechaDespacho() {
+        return fechaDespacho;
+    }
+
+    public void setFechaDespacho(LocalDateTime fechaDespacho) {
+        this.fechaDespacho = fechaDespacho;
+    }
+
+    public LocalDateTime getFechaEntregaEstimada() {
+        return fechaEntregaEstimada;
+    }
+
+    public void setFechaEntregaEstimada(LocalDateTime fechaEntregaEstimada) {
+        this.fechaEntregaEstimada = fechaEntregaEstimada;
+    }
+
     public Vehiculo getVehiculo() {
         return vehiculo;
     }
@@ -116,5 +139,22 @@ public class Envio extends AuditableEntity {
 
     public void setConductor(Conductor conductor) {
         this.conductor = conductor;
+    }
+
+    public List<Paquete> getPaquetes() {
+        return paquetes;
+    }
+
+    public void setPaquetes(List<Paquete> paquetes) {
+        this.paquetes = paquetes;
+    }
+
+    /**
+     * Metodo de conveniencia para mantener sincronizada la relacion
+     * bidireccional al agregar un paquete nuevo al envio.
+     */
+    public void agregarPaquete(Paquete paquete) {
+        paquetes.add(paquete);
+        paquete.setEnvio(this);
     }
 }

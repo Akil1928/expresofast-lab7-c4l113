@@ -18,7 +18,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
+import cr.ac.ucr.paraiso.ie.c4l113.expresofast.dto.EnvioRegistroDTO;
+import java.util.Map;
 import java.util.List;
 
 /**
@@ -55,6 +56,25 @@ public class EnvioPaginadoController {
 
         Page<EnvioDTO> resultado = envioService.listarPaginado(page, size, sortBy, direction, busqueda, estado);
         return ResponseEntity.ok(resultado);
+    }
+        /**
+     * GET /api/v1/envios/check-tracking/{numeroTracking}
+     * Validador asincrono de Angular: indica si el numero de rastreo ya existe.
+     */
+    @GetMapping("/check-tracking/{numeroTracking}")
+    public ResponseEntity<Map<String, Boolean>> verificarTracking(@PathVariable String numeroTracking) {
+        boolean existe = envioService.existeTracking(numeroTracking);
+        return ResponseEntity.ok(Map.of("existe", existe));
+    }
+
+    /**
+     * POST /api/v1/envios/avanzado
+     * Registra un envio junto con sus paquetes asociados (Lab 11).
+     */
+    @PostMapping("/avanzado")
+    public ResponseEntity<EnvioDTO> registrarAvanzado(@Valid @RequestBody EnvioRegistroDTO request) {
+        EnvioDTO creado = envioService.registrarEnvioAvanzado(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
     /**
