@@ -1,0 +1,80 @@
+<section class="contenedor-form">
+  <h1>Registro Avanzado de Envío</h1>
+  <p class="subtitulo">Formulario reactivo tipado con múltiples paquetes (Laboratorio 11)</p>
+
+  <form [formGroup]="envioForm" (ngSubmit)="registrar()">
+
+    <label for="numeroTracking">Número de Rastreo *</label>
+    <div class="fila-codigo">
+      <input type="text" id="numeroTracking" formControlName="numeroTracking" placeholder="EXP-1234">
+      <button type="button" class="btn-secundario" (click)="generarNumeroTracking()">Generar</button>
+    </div>
+    <p *ngIf="envioForm.get('numeroTracking')?.hasError('pattern') && envioForm.get('numeroTracking')?.touched" class="mensaje-error">
+      Formato inválido. Ejemplo: EXP-1234
+    </p>
+    <p *ngIf="envioForm.get('numeroTracking')?.pending" class="mensaje-info">
+      Verificando disponibilidad...
+    </p>
+    <p *ngIf="envioForm.get('numeroTracking')?.hasError('trackingTomado') && envioForm.get('numeroTracking')?.touched" class="mensaje-error">
+      Este número de rastreo ya está en uso.
+    </p>
+
+    <label for="direccionDestino">Dirección Destino *</label>
+    <input type="text" id="direccionDestino" formControlName="direccionDestino" placeholder="Paraíso, Cartago">
+
+    <label for="costo">Costo (₡) *</label>
+    <input type="number" id="costo" formControlName="costo" step="0.01">
+
+    <label for="fechaDespacho">Fecha de Despacho *</label>
+    <input type="datetime-local" id="fechaDespacho" formControlName="fechaDespacho">
+
+    <label for="fechaEntregaEstimada">Fecha de Entrega Estimada *</label>
+    <input type="datetime-local" id="fechaEntregaEstimada" formControlName="fechaEntregaEstimada">
+
+    <label for="vehiculoId">ID Vehículo *</label>
+    <input type="number" id="vehiculoId" formControlName="vehiculoId">
+
+    <label for="conductorId">ID Conductor *</label>
+    <input type="number" id="conductorId" formControlName="conductorId">
+
+    <hr class="separador">
+    <h2>Paquetes del Envío</h2>
+
+    <div formArrayName="paquetes">
+      <div *ngFor="let paquete of paquetesArray.controls; let i = index" [formGroupName]="i" class="bloque-paquete">
+        <div class="bloque-paquete-header">
+          <strong>Paquete {{ i + 1 }}</strong>
+          <button
+            type="button"
+            class="btn-eliminar"
+            (click)="eliminarPaquete(i)"
+            [disabled]="paquetesArray.length <= 1"
+            title="Eliminar paquete">
+            ✕
+          </button>
+        </div>
+
+        <label [for]="'descripcion-' + i">Descripción *</label>
+        <input [id]="'descripcion-' + i" type="text" formControlName="descripcion" placeholder="Caja de herramientas">
+
+        <label [for]="'pesoKg-' + i">Peso (kg) *</label>
+        <input [id]="'pesoKg-' + i" type="number" formControlName="pesoKg" step="0.01">
+      </div>
+    </div>
+
+    <button type="button" class="btn-secundario btn-añadir" (click)="agregarPaquete()">
+      + Añadir Paquete
+    </button>
+
+    <p *ngIf="envioForm.errors?.['fechaEntregaInvalida'] && envioForm.get('fechaEntregaEstimada')?.touched" class="mensaje-error mensaje-error-global">
+      ⚠️ La fecha de entrega estimada debe ser posterior a la fecha de despacho.
+    </p>
+
+    <button type="submit" class="btn-primario" [disabled]="enviando || envioForm.invalid || envioForm.pending">
+      {{ enviando ? 'Registrando...' : 'Registrar Envío' }}
+    </button>
+
+    <p *ngIf="mensajeExito" class="mensaje-exito">{{ mensajeExito }}</p>
+    <p *ngIf="mensajeError" class="mensaje-error">{{ mensajeError }}</p>
+  </form>
+</section>

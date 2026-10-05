@@ -44,3 +44,29 @@ export interface CrearEnvioPayload {
 
 export const ESTADOS_ENVIO = ['PENDIENTE', 'EN_TRANSITO', 'ENTREGADO', 'CANCELADO'] as const;
 export type EstadoEnvio = typeof ESTADOS_ENVIO[number];
+/**
+ * Representa un paquete individual dentro del registro avanzado de un envio (Lab 11).
+ */
+export interface Paquete {
+  descripcion: string;
+  pesoKg: number;
+}
+
+/**
+ * Payload para el registro avanzado de un envio con sus paquetes (Lab 11).
+ * El campo "numeroTracking" se mapea al mismo "codigoRastreo" del backend.
+ */
+export interface EnvioRegistroPayload {
+  numeroTracking: string;
+  direccionDestino: string;
+  costo: number;
+  fechaDespacho: string; // ISO string
+  fechaEntregaEstimada: string; // ISO string
+  vehiculoId: number;
+  conductorId: number;
+  paquetes: Paquete[];
+}
+
+export interface CheckTrackingResponse {
+  existe: boolean;
+}

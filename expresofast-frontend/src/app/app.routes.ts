@@ -2,8 +2,12 @@ import { Routes } from '@angular/router';
 import { EnvioListComponent } from './components/envio-list/envio-list';
 import { EnvioFormComponent } from './components/envio-form/envio-form';
 import { EnvioTrackingComponent } from './components/envio-tracking/envio-tracking';
+import { EnvioAvanzadoFormComponent } from './components/envio-avanzado-form/envio-avanzado-form';
+// ...
+
 
 export const routes: Routes = [
+  { path: 'envio-avanzado', component: EnvioAvanzadoFormComponent },
   { path: '', redirectTo: 'envios', pathMatch: 'full' },
   { path: 'envios', component: EnvioListComponent },
   { path: 'nuevo-envio', component: EnvioFormComponent },
